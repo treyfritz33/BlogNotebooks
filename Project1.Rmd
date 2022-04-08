@@ -1,0 +1,187 @@
+---
+title: 'Why the Boston Celtics are going to win the 2023 NBA Championship '
+author: "Trey Fritz"
+date: '2022-04-01'
+slug: why-the-boston-celtics-are-going-to-win-the-2023-nba-championship
+categories: []
+tags: []
+---
+ 
+The Boston Celtics started the NBA season with high hopes and title aspirations, but the first half of the seaon had many Celtics fans looking for answers. With a record of 17-19 before the start of the new year the Celtics were disappointing everyone. Somehting clicked in January, nobody is sure what happened, but some credit a Tweet from Celtics star Jaylen Brown that said, "The energy is about to shift". Oh and did it shift, since the turn of the year the Celtics have skyrocketed into the top of the Eastern Conference. 
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(tidyverse)
+library(scales)
+library(cowplot)
+library(ggbeeswarm)
+library(ggrepel)
+library(ggbump)
+```
+
+
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+nbamonth <- read_csv("nbamonth.csv") %>% select(Team, Overall, Oct, Nov, Dec, Jan, Feb, Mar, Apr) %>%
+   separate(Overall, into=c("Wins", "Losses"), sep="-") %>% separate(Oct, into=c("OctWins", "OctLosses"), sep="-") %>% separate(Nov, into=c("NovWins", "NovLosses"), sep="-") %>% separate(Dec, into=c("DecWins", "DecLosses"), sep="-") %>% separate(Jan, into=c("JanWins", "JanLosses"), sep="-") %>% separate(Feb, into=c("FebWins", "FebLosses"), sep="-") %>% separate(Mar, into=c("MarWins", "MarLosses"), sep="-") %>% separate(Apr, into=c("AprWins", "AprLosses"), sep="-") 
+
+```
+
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+piv <- nbamonth %>% select(Team, OctWins, NovWins, DecWins, JanWins, FebWins, MarWins, AprWins) %>% 
+  pivot_longer(cols = ends_with("Wins"), names_to = "Month", values_to = "Wins") 
+ 
+winpiv <- piv %>% group_by(Team) %>% mutate(CumulativeWins = cumsum(Wins)) 
+
+wins <- winpiv %>%
+mutate(
+  Month = case_when(
+        Month == "OctWins" ~ as.Date("2021-10-15"), 
+        Month == "NovWins" ~ as.Date("2021-11-15"),
+        Month == "DecWins" ~ as.Date("2021-12-15"),
+        Month == "JanWins" ~ as.Date("2022-01-15"),
+        Month == "FebWins" ~ as.Date("2022-02-15"),
+        Month == "MarWins" ~ as.Date("2022-03-15"),
+        Month == "AprWins" ~ as.Date("2022-04-15")
+))
+
+bos <- winpiv %>% filter(Team== "Boston Celtics") %>% mutate(
+  Month = case_when(
+        Month == "OctWins" ~ as.Date("2021-10-15"), 
+        Month == "NovWins" ~ as.Date("2021-11-15"),
+        Month == "DecWins" ~ as.Date("2021-12-15"),
+        Month == "JanWins" ~ as.Date("2022-01-15"),
+        Month == "FebWins" ~ as.Date("2022-02-15"),
+        Month == "MarWins" ~ as.Date("2022-03-15"),
+        Month == "AprWins" ~ as.Date("2022-04-15")
+))
+
+lal <- winpiv %>% filter(Team== "Los Angeles Lakers") %>% mutate(
+  Month = case_when(
+        Month == "OctWins" ~ as.Date("2021-10-15"), 
+        Month == "NovWins" ~ as.Date("2021-11-15"),
+        Month == "DecWins" ~ as.Date("2021-12-15"),
+        Month == "JanWins" ~ as.Date("2022-01-15"),
+        Month == "FebWins" ~ as.Date("2022-02-15"),
+        Month == "MarWins" ~ as.Date("2022-03-15"),
+        Month == "AprWins" ~ as.Date("2022-04-15")
+))
+
+  
+
+
+ggplot() + geom_step(data = wins, aes(x=Month, y=CumulativeWins, group=Team), color="grey") +
+  geom_step(data = bos, aes(x=Month, y=CumulativeWins, group=Team), color= "dark green") + 
+  labs(title = "After a slow start Boston ascended to the top of the Eastern Conference", subtitle= "Many fans have been wondering what the Celtics record would be if they played at this level for the whole year.", x="", y="Opponent FG%",  caption="Source: Nba Reference | By Trey Fritz") +
+  theme_minimal() +
+  theme(
+    plot.title.position = "plot",
+    plot.title = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 10) )
+```
+
+
+
+
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+logs <- read_csv("Total Stats.csv")
+```
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+head(logs)
+```
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+ logs %>% 
+ summarise(Team, PTS) %>% 
+  arrange(-desc(PTS))  
+  
+```
+
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+FGpct <- logs %>% 
+arrange(desc(FGPct)) %>%
+  top_n(-10)
+
+Three <- logs %>% 
+  arrange(desc(ThreePPct)) %>% 
+  top_n(-10)
+
+bos <- logs %>% filter(Team== "Boston Celtics")
+
+head(Three)
+
+```
+The biggest factor behind this jump was the defense of the Celtics. Lead by Rob Williams and Marcus Smart on the defensive end this team put on a clinic. With every position being able to switch 1-5 opposing offenses were gasping for air, a simple pick and roll or screen seemed to be nothing short of useless. The Celtics have held opponents to the lowest shooting percentage and the lowest three point percentage, and I don't know about you but I think that if you can keep a team from hitting threes, you have a pretty good chance of running them out of the building. 
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+ bar1 <- ggplot() + geom_bar(data = FGpct, aes(x=reorder(Team, FGPct), weight=FGPct), fill="grey") + 
+  geom_bar(data = bos, aes(x=reorder(Team, -FGPct), weight=FGPct), fill="dark green") + coord_flip() + 
+  labs(title = "The Boston defense stepped up in multiple categories", subtitle= "Celtics have held opponents to the lowest field goal and three point percent.", x="", y="Opponent FG%",  caption="") + coord_flip() +
+  theme_minimal() +
+  theme(
+    plot.title.position = "plot",
+    plot.title = element_text(size = 18, face = "bold"),
+    plot.subtitle = element_text(size = 10) )
+ 
+
+bar2 <- ggplot() + geom_bar(data = Three, aes(x=reorder(Team, ThreePPct), weight=ThreePPct),fill="grey") + 
+  geom_bar(data = bos, aes(x=reorder(Team, -ThreePPct), weight=ThreePPct), fill="dark green",) + 
+  labs(title = "", subtitle= "", x="", y="Opponent 3PPct",  caption="Source: Sports Reference | By Trey Fritz") + coord_flip() +
+  theme_minimal() 
+
+```
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+plot_grid( bar1, bar2, ncol = 2)
+```
+Now some of you may be thinking that those numbers barely differ and the Celtics only have slight leads in the categories. Well my response to that is that this is basketball, every missed shot counts, and the lower that percentage the higher your chances of winning are. 
+
+
+As previously mentioned this Boston team started off terribly to begin the season, but ever since January 17th this team has had the highest net rating BY FAR. A net rating is put together by finding the difference between a teams offensive and deffensive rating. Since that date the Celtics offensive rating exploded to 118.8, this in part due to the scoring explosion from Celtics All-Star Jaysun Tatum who has the highest net rating of any player at 11.5. Tatum isn't alone in this dominance, he is joined in the top 10 net ratings by Robert Williams at 10 and Jaylen Brown at 9.4. Having three players inside the top 10 in net rating shows that your team has enough firepower to make a push, instead of just relying on a single player, I'm looking at you Milwaukee. 
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+set.seed(1234)
+
+stats <- read_csv("nbaadvancedstats.csv")
+
+lal <- stats %>% filter(TEAM == "Los Angeles Lakers")
+
+bos <- stats %>% filter(TEAM == "Boston Celtics")
+```
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+ggplot() + geom_point(data = stats, aes(x= OffRtg, y=DefRtg), color="dark grey") +
+    geom_point(data = bos, aes(x= OffRtg, y=DefRtg), color="dark green") +
+  geom_point(data = lal, aes(x= OffRtg, y=DefRtg), color="purple") +
+  geom_text_repel(data = bos, aes(x=OffRtg, y=DefRtg, label=TEAM)) +
+    geom_text_repel(data = lal, aes(x=OffRtg, y=DefRtg, label=TEAM)) + 
+  geom_vline(xintercept = 112) + geom_hline(yintercept = 112.5)
+  labs(
+    x="Offensive Rating", 
+    y="Defensive Rating", 
+    title="Boston stands out from the rest, and for good reason", 
+    subtitle="The Celtics have been one of the highest scoring teams while also keeping thier opponents to\n an extremely low score.", 
+    caption="Source: NBA.com | By Trey Fritz"
+    ) +
+  theme_light() +
+  theme(
+    plot.title.position = "plot",
+    plot.title = element_text(size = 18, face = "bold"),
+    plot.subtitle = element_text(size = 10)
+  )
+```
+As you can clearly see Boston is an outlier and putting up dominating performances, they are essentially winning games by halftime. This is clearly shown in the difference the Celtics have had in net rating, and I know net rating isn't the final determinant but it is a statistic that is widely used and is a respected unit of measuring how good a team is. 
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+
+```
+
+
+I know I may be a little biased in my selection on who is going to win the NBA Finals, but I do have numbers to back up my claim. I'm not some Lakers fan rambling on and on about how Lebron will carry the Lakers through the playoffs, he is past his prime move on. This Boston team has kicked it into gear and at just the right time, with the playoffs around the corner every team should be scared of Boston. Their defense has no weakness and the offense is carried by Tatum and Brown, who have had 7 games where they each score at least 30. I've noticed how dominant this run had been and its time some others started respecting it as well.
+
+
+
+
+
+
